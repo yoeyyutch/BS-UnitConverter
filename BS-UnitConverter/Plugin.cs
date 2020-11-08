@@ -3,6 +3,7 @@ using HarmonyLib;
 using IPALogger = IPA.Logging.Logger;
 using System.Reflection;
 using System;
+using BS_Utils.Utilities;
 
 namespace BS_UnitConverter
 {
@@ -19,6 +20,8 @@ namespace BS_UnitConverter
 		internal static bool harmonyPatchesLoaded = false;
 		internal static readonly Harmony harmonyInstance = new Harmony(HARMONYID);
 
+		private MapInfo mapInfo;	
+
 		[Init]
 		public Plugin(IPALogger logger)
 		{
@@ -30,13 +33,28 @@ namespace BS_UnitConverter
 		public void OnApplicationStart()
 		{
 			Plugin.Log.Info("OnApplicationStart");
+			AddEvents();
 			LoadHarmonyPatches();
+		}
+
+		public void OnGameSceneLoaded()
+		{
+			if (mapInfo != null)
+			{
+				mapInfo = null;
+			}
+			if (mapInfo == null)
+			{
+				mapInfo = new MapInfo();
+			}
 		}
 
 		[OnExit]
 		public void OnApplicationQuit()
 		{
 			UnloadHarmonyPatches();
+			RemoveEvents();
+
 		}
 
 		internal void LoadHarmonyPatches()
@@ -57,6 +75,29 @@ namespace BS_UnitConverter
 				Log.Error(e.ToString());
 			}
 			harmonyPatchesLoaded = true;
+		}
+
+		private void AddEvents()
+		{
+			//BSEvents.menuSceneLoaded += OnMenuSceneLoaded;
+			BSEvents.gameSceneLoaded += OnGameSceneLoaded;
+			//BSEvents.levelCleared += OnSongExit;
+			//BSEvents.levelFailed += OnSongExit;
+			//BSEvents.levelQuit += OnSongExit;
+			//BSEvents.levelRestarted += OnSongExit;
+			//BSEvents.songPaused += OnPause;
+			//BSEvents.songUnpaused += OnUnpause;
+		}
+		private void RemoveEvents()
+		{
+			//BSEvents.menuSceneLoaded -= OnMenuSceneLoaded;
+			BSEvents.gameSceneLoaded -= OnGameSceneLoaded;
+			//BSEvents.levelCleared -= OnSongExit;
+			//BSEvents.levelFailed -= OnSongExit;
+			//BSEvents.levelQuit -= OnSongExit;
+			//BSEvents.levelRestarted -= OnSongExit;
+			//BSEvents.songPaused -= OnPause;
+			//BSEvents.songUnpaused -= OnUnpause;
 		}
 
 		internal void UnloadHarmonyPatches()
