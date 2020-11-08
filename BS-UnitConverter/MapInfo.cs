@@ -1,12 +1,11 @@
-﻿
-
-using System;
+﻿using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zenject;
 using BS_Utils;
-
+using System.Collections.Generic;
+using System.Collections;
 
 namespace BS_UnitConverter
 {
@@ -18,14 +17,15 @@ namespace BS_UnitConverter
 
 		public ScoreController GetScore() => _scoreController;
 
-		internal static int noteCountTotal;
-		internal static int noteCountCurrent;
+		internal static int noteTotal;
+		internal static int noteCurrent;
+		internal static int notePrevious;
 
 		internal static int maxPossibleScoreTotal;
 		internal static int maxPossibleScoreCurrent;
 		internal static int maxPossibleScoreRemaining;
 
-		internal static int score;
+		internal static int Score;
 
 		public MapInfo()
 		{
@@ -34,40 +34,56 @@ namespace BS_UnitConverter
 
 			BS_Utils.Utilities.BSEvents.noteWasCut += OnNoteCut;
 			BS_Utils.Utilities.BSEvents.noteWasMissed += OnNoteMissed;
+			//BS_Utils.Utilities.BSEvents.scoreDidChange += OnScoreChanged;
+			_scoreController.scoreDidChangeEvent += OnScoreChanged;
 
 
-			noteCountTotal = _sceneData.difficultyBeatmap.beatmapData.cuttableNotesType;
-			maxPossibleScoreTotal = ScoreModel.MaxRawScoreForNumberOfNotes(noteCountTotal);
-			Init();
-
-			
-			
+			noteTotal = _sceneData.difficultyBeatmap.beatmapData.cuttableNotesType;
+			maxPossibleScoreTotal = ScoreModel.MaxRawScoreForNumberOfNotes(noteTotal);
+			Init();	
 		}
 
+		void Init()
+		{
+			Plugin.Log.Info("Level started.");
+			Plugin.Log.Info(_sceneData.difficultyBeatmap.level.songName);
+			Plugin.Log.Info(_sceneData.difficultyBeatmap.difficulty.ToString());
+			Plugin.Log.Info("Note Count: " + noteTotal);
+
+			noteCurrent = 0;
+			notePrevious = 0;
+			
+			maxPossibleScoreCurrent = 0;
+			maxPossibleScoreRemaining = maxPossibleScoreTotal;
+			Score = 0;
+		}
+		
 		void OnNoteCut(NoteData noteData, NoteCutInfo cutInfo, int multiplier)
 		{
 			if (noteData.colorType != ColorType.None)
 			{
-				noteCountCurrent++;
-				score = _scoreController.prevFrameRawScore;
-				Plugin.Log.Info("note: " + noteCountCurrent + "Score: " + score);
+				noteCurrent++;
 			}
 		}
 		void OnNoteMissed(NoteData noteData, int multiplier)
 		{
 			if (noteData.colorType != ColorType.None)
 			{
-				noteCountCurrent++;
-				Plugin.Log.Info("note: " + noteCountCurrent + "Score: " + score);
+				noteCurrent++;
 			}
 		}
 
-		void Init()
+		void OnScoreChanged(int score, int modifiedScore)
 		{
-			noteCountCurrent = 0;
-			maxPossibleScoreCurrent = 0;
-			maxPossibleScoreRemaining = maxPossibleScoreTotal;
-			score = 0;
+			Score = score;
+			Plugin.Log.Info("note: " + noteCurrent + "/" + noteTotal + " Score: " + Score + "/" + CurrentMaxScore(noteCurrent));
+
+		}
+
+		int CurrentMaxScore(int notes)
+		{
+			int max = ScoreModel.MaxRawScoreForNumberOfNotes(notes);
+			return max;
 		}
 	}
 
