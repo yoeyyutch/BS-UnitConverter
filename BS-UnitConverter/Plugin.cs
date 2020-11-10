@@ -37,6 +37,15 @@ namespace BS_UnitConverter
 			LoadHarmonyPatches();
 		}
 
+		[OnExit]
+		public void OnApplicationQuit()
+		{
+			Log.Info($"Songs Played: {MapInfo.SongsPlayed}");
+			UnloadHarmonyPatches();
+			RemoveEvents();
+
+		}
+
 		public void OnGameSceneLoaded()
 		{
 			if (mapInfo != null)
@@ -49,14 +58,50 @@ namespace BS_UnitConverter
 			}
 		}
 
-		[OnExit]
-		public void OnApplicationQuit()
+		public void OnMenuSceneLoaded()
 		{
-			UnloadHarmonyPatches();
-			RemoveEvents();
+
 
 		}
 
+		public void OnSongExit(StandardLevelScenesTransitionSetupDataSO level, LevelCompletionResults results)
+		{
+
+			Log.Info(results.levelEndStateType.ToString());
+			Log.Info(results.levelEndAction.ToString());
+			//if (mapInfo != null)
+			//{
+			//	mapInfo = null;
+			//}
+			//mapInfo.Unsub();
+		}
+
+
+
+
+		private void AddEvents()
+		{
+			BSEvents.menuSceneLoaded += OnMenuSceneLoaded;
+			BSEvents.gameSceneLoaded += OnGameSceneLoaded;
+			BSEvents.levelCleared += OnSongExit;
+			BSEvents.levelFailed += OnSongExit;
+			BSEvents.levelQuit += OnSongExit;
+			BSEvents.levelRestarted += OnSongExit;
+			//BSEvents.songPaused += OnPause;
+			//BSEvents.songUnpaused += OnUnpause;
+			//BSEvents.noteWasCut += OnNoteCut;
+		}
+		private void RemoveEvents()
+		{
+			BSEvents.menuSceneLoaded -= OnMenuSceneLoaded;
+			BSEvents.gameSceneLoaded -= OnGameSceneLoaded;
+			BSEvents.levelCleared -= OnSongExit;
+			BSEvents.levelFailed -= OnSongExit;
+			BSEvents.levelQuit -= OnSongExit;
+			BSEvents.levelRestarted -= OnSongExit;
+			//BSEvents.songPaused -= OnPause;
+			//BSEvents.songUnpaused -= OnUnpause;
+		}
 		internal void LoadHarmonyPatches()
 		{
 			if (harmonyPatchesLoaded)
@@ -76,30 +121,6 @@ namespace BS_UnitConverter
 			}
 			harmonyPatchesLoaded = true;
 		}
-
-		private void AddEvents()
-		{
-			//BSEvents.menuSceneLoaded += OnMenuSceneLoaded;
-			BSEvents.gameSceneLoaded += OnGameSceneLoaded;
-			//BSEvents.levelCleared += OnSongExit;
-			//BSEvents.levelFailed += OnSongExit;
-			//BSEvents.levelQuit += OnSongExit;
-			//BSEvents.levelRestarted += OnSongExit;
-			//BSEvents.songPaused += OnPause;
-			//BSEvents.songUnpaused += OnUnpause;
-		}
-		private void RemoveEvents()
-		{
-			//BSEvents.menuSceneLoaded -= OnMenuSceneLoaded;
-			BSEvents.gameSceneLoaded -= OnGameSceneLoaded;
-			//BSEvents.levelCleared -= OnSongExit;
-			//BSEvents.levelFailed -= OnSongExit;
-			//BSEvents.levelQuit -= OnSongExit;
-			//BSEvents.levelRestarted -= OnSongExit;
-			//BSEvents.songPaused -= OnPause;
-			//BSEvents.songUnpaused -= OnUnpause;
-		}
-
 		internal void UnloadHarmonyPatches()
 		{
 			if (!harmonyPatchesLoaded)
