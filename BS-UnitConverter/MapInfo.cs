@@ -19,10 +19,12 @@ namespace BS_UnitConverter
 		internal int MapNoteCount;
 		internal int MapMaxScore;
 
-		internal int NotesCompleted;
+		internal int CurrentNote;
 
-		internal int Score;
+		internal int CurrentScore;
+		private int nextNote;
 
+		internal int MaxPossibleScore;
 		internal float MaxPercentPossible;
 
 		public static int SongsPlayed = 0;
@@ -31,62 +33,100 @@ namespace BS_UnitConverter
 		{
 			_sceneData = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData;
 			_scoreController = Resources.FindObjectsOfTypeAll<ScoreController>().First();
-
-			SongsPlayed++;
+			
 			Init();
+			AddEvents();
+			LogMapInfo();
 		}
 
 		void Init()
 		{
-			BSEvents.noteWasCut += OnNoteCut;
-			BSEvents.noteWasMissed += OnNoteMissed;
-			_scoreController.scoreDidChangeEvent += OnScoreChanged;
-
+			
 			MapNoteCount = _sceneData.difficultyBeatmap.beatmapData.cuttableNotesType;
 			MapMaxScore = ScoreModel.MaxRawScoreForNumberOfNotes(MapNoteCount);
-
-
-			NotesCompleted = 0;
-			Score = 0;
+			CurrentNote = 0;
+			nextNote = 2;
+			CurrentScore = 0;
 			MaxPercentPossible = 100f;
-
-			Plugin.Log.Info("Level started.");
-			Plugin.Log.Info(_sceneData.difficultyBeatmap.level.songName);
-			Plugin.Log.Info(_sceneData.difficultyBeatmap.difficulty.ToString());
-			Plugin.Log.Info("Note Count: " + MapNoteCount);
+			SongsPlayed++;
 		}
 
 		void OnNoteCut(NoteData noteData, NoteCutInfo cutInfo, int multiplier)
 		{
 			if (noteData.colorType != ColorType.None)
 			{
-				NotesCompleted++;
+				CurrentNote++;
 			}
 		}
 		void OnNoteMissed(NoteData noteData, int multiplier)
 		{
 			if (noteData.colorType != ColorType.None)
 			{
-				NotesCompleted++;
+				CurrentNote++;
 			}
 		}
 
 		void OnScoreChanged(int score, int modifiedScore)
 		{
-			Score = score;
+			if (nextNote > CurrentNote)
+				return;
+			else if(nextNote == CurrentNote)
+			{
+				CurrentScore = score;
+				CalculateMax();
+				nextNote++;
+			}
+
+			CurrentScore = score;
+
 			if (MapMaxScore != 0)
 			{
-				MaxPercentPossible =(MyMaxScorePossible() / MapMaxScore)*100f;
-				Plugin.Log.Info($"{NotesCompleted}: {MaxPercentPossible}%");
+				//var m = MaxPercent();
+				//MaxPercentPossible =(MyMaxScorePossible() / MapMaxScore)*100f;
+
 			}
-			//Plugin.Log.Info("note: " + NotesCompleted + "/" + MapNoteCount + " Score: " + Score + "/" + MaxScoreSoFar());
+
+		}
+		void  CalculateMax()
+		{
+			int maxsofar = ScoreModel.MaxRawScoreForNumberOfNotes(CurrentNote);
+			int maxremaining = MapMaxScore - maxsofar;
+			MaxPossibleScore = CurrentScore + maxremaining;
+			MaxPercentPossible = MapMaxScore!=0 ? (float)MaxPossibleScore / (float)MapMaxScore * 100f : 100f;
+			Plugin.Log.Info($"{CurrentNote}, {CurrentScore}, {MaxPercentPossible:0.00}%");
+			return;
+
 		}
 
-		int MaxScoreSoFar() => ScoreModel.MaxRawScoreForNumberOfNotes(NotesCompleted);
+		int MaxScoreSoFar() => ScoreModel.MaxRawScoreForNumberOfNotes(CurrentNote);
 
 		int MaxScoreForRemainingNotes() => MapMaxScore - MaxScoreSoFar();
 
-		int MyMaxScorePossible() => Score + MaxScoreForRemainingNotes();
+		int MyMaxScorePossible() => CurrentScore + MaxScoreForRemainingNotes();
+
+		public void AddEvents()
+		{
+			RemoveEvents();
+			BSEvents.noteWasCut += OnNoteCut;
+			BSEvents.noteWasMissed += OnNoteMissed;
+			_scoreController.scoreDidChangeEvent += OnScoreChanged;
+		}
+
+		public void RemoveEvents()
+		{
+			BSEvents.noteWasCut -= OnNoteCut;
+			BSEvents.noteWasMissed -= OnNoteMissed;
+			_scoreController.scoreDidChangeEvent -= OnScoreChanged;
+		}
+
+		public void LogMapInfo()
+		{
+			Plugin.Log.Info("Level started.");
+			Plugin.Log.Info(_sceneData.difficultyBeatmap.level.songName);
+			Plugin.Log.Info($"Max score: {MapMaxScore.ToString()}");
+			Plugin.Log.Info(_sceneData.difficultyBeatmap.difficulty.ToString());
+			Plugin.Log.Info("Note Count: " + MapNoteCount);
+		}
 
 		//public void Unsub()
 		//{
