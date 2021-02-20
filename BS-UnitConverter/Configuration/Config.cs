@@ -48,5 +48,17 @@
 				config.SetFloat(s, nameof(PlayerHeight), value);
 			}
 		}
+
+		internal static bool CollectDebrisData
+		{
+			get
+			{
+				return config.GetBool(s, nameof(CollectDebrisData), true, true);
+			}
+			set
+			{
+				config.SetBool(s, nameof(CollectDebrisData), value);
+			}
+		}
 	}
 }

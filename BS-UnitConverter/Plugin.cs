@@ -3,7 +3,6 @@ using HarmonyLib;
 using IPALogger = IPA.Logging.Logger;
 using System.Reflection;
 using System;
-using BS_Utils.Utilities;
 using Config = BS_UnitConverter.Configuration.Config;
 
 namespace BS_UnitConverter
@@ -33,6 +32,8 @@ namespace BS_UnitConverter
 		public void OnApplicationStart()
 		{
 			Log.Info("OnApplicationStart");
+			if (Config.CollectDebrisData)
+				Log.Info("Colortype, NoteP, NoteR, OffsetP, OffsetR, CutP, CutN, F, T, L");
 			//AddEvents();
 			LoadHarmonyPatches();
 		}
@@ -40,6 +41,8 @@ namespace BS_UnitConverter
 		[OnExit]
 		public void OnApplicationQuit()
 		{
+			Log.Info("OnApplicationQuit");
+		
 			//Log.Info($"Songs Played: {MapInfo.SongsPlayed}");
 			UnloadHarmonyPatches();
 			//RemoveEvents();
@@ -55,7 +58,7 @@ namespace BS_UnitConverter
 			try
 			{
 				harmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
-				Log.Info("Harmony patches loaded");
+				//Log.Info("Harmony patches loaded");
 			}
 			catch (Exception e)
 			{
@@ -73,7 +76,7 @@ namespace BS_UnitConverter
 			try
 			{
 				harmonyInstance.UnpatchAll(HARMONYID);
-				Log.Info("Harmony patches unloaded");
+				//Log.Info("Harmony patches unloaded");
 			}
 			catch (Exception e)
 			{

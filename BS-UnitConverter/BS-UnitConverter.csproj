@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BS_UnitConverter</RootNamespace>
-    <AssemblyName>BS-UnitConverter2</AssemblyName>
+    <AssemblyName>BS-UnitConverter</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <DebugSymbols>true</DebugSymbols>
@@ -118,9 +118,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\Config.cs" />
-    <Compile Include="GameInfo.cs" />
+    <None Include="GameInfo.cs" />
+    <Compile Include="HarmonyPatches\NoteDebrisPatch.cs" />
     <Compile Include="HarmonyPatches\PlayerHeightSettingsControllerRefreshUI.cs" />
     <None Include="MapInfo.cs" />
+    <Compile Include="NoteDebrisData.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
